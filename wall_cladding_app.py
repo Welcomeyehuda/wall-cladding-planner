@@ -23,12 +23,12 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels):
     width, height = A4
 
     c.setFont("Helvetica", 14)
-    c.drawString(50, height - 50, "דו\"ח חיפוי קיר")
+    c.drawRightString(width - 50, height - 50, "דו""ח חיפוי קיר")
     c.setFont("Helvetica", 12)
-    c.drawString(50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
-    c.drawString(50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס\"מ")
-    c.drawString(50, height - 140, f"פלטות: {num_plates}")
-    c.drawString(50, height - 170, f"סרגלים: {num_sargels}")
+    c.drawRightString(width - 50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
+    c.drawRightString(width - 50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס""מ")
+    c.drawRightString(width - 50, height - 140, f"פלטות: {num_plates}")
+    c.drawRightString(width - 50, height - 170, f"סרגלים: {num_sargels}")
 
     c.showPage()
     c.save()
@@ -64,26 +64,22 @@ def draw_wall(wall_width, wall_height, mode, manual_sargels=0):
                 num_plates += 1
                 break
     else:  # תכנון אוטומטי עם רנדומליות
-        pattern = random.choice(["start_sargel", "start_plate"])
         while x < wall_width:
-            if pattern == "start_sargel" and wall_width - x >= SARGEL_WIDTH:
-                num = random.randint(1, 3)
+            choice = random.choice(["plates", "sargels"])
+            if choice == "plates" and wall_width - x >= PLATE_WIDTH:
+                num = random.randint(1, 2)
+                for _ in range(num):
+                    if wall_width - x >= PLATE_WIDTH:
+                        ax.add_patch(plt.Rectangle((x, 0), PLATE_WIDTH, wall_height, edgecolor='black', facecolor=plate_color))
+                        x += PLATE_WIDTH
+                        num_plates += 1
+            elif choice == "sargels" and wall_width - x >= SARGEL_WIDTH:
+                num = random.randint(1, 5)
                 for _ in range(num):
                     if wall_width - x >= SARGEL_WIDTH:
                         ax.add_patch(plt.Rectangle((x, 0), SARGEL_WIDTH, wall_height, edgecolor='black', facecolor=sargel_color))
                         x += SARGEL_WIDTH
                         num_sargels += 1
-                pattern = "plate"
-            elif pattern == "plate" and wall_width - x >= PLATE_WIDTH:
-                ax.add_patch(plt.Rectangle((x, 0), PLATE_WIDTH, wall_height, edgecolor='black', facecolor=plate_color))
-                x += PLATE_WIDTH
-                num_plates += 1
-                pattern = random.choice(["sargel", "plate"])
-            elif pattern == "sargel" and wall_width - x >= SARGEL_WIDTH:
-                ax.add_patch(plt.Rectangle((x, 0), SARGEL_WIDTH, wall_height, edgecolor='black', facecolor=sargel_color))
-                x += SARGEL_WIDTH
-                num_sargels += 1
-                pattern = "plate"
             else:
                 break
 
