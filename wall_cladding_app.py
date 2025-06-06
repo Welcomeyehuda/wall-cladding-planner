@@ -26,7 +26,7 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels):
     c.drawRightString(width - 50, height - 50, "דו""ח חיפוי קיר")
     c.setFont("Helvetica", 12)
     c.drawRightString(width - 50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
-    c.drawRightString(width - 50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס""מ")
+    c.drawRightString(width - 50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס\"מ")
     c.drawRightString(width - 50, height - 140, f"פלטות: {num_plates}")
     c.drawRightString(width - 50, height - 170, f"סרגלים: {num_sargels}")
 
@@ -63,8 +63,8 @@ def draw_wall(wall_width, wall_height, mode, manual_sargels=0):
                 ax.add_patch(plt.Rectangle((x, 0), wall_width - x, wall_height, edgecolor='black', facecolor=plate_color))
                 num_plates += 1
                 break
-    else:  # תכנון אוטומטי עם רנדומליות
-        while x < wall_width:
+    else:  # תכנון אוטומטי עם רנדומליות ומילוי מלא
+        while wall_width - x >= min(PLATE_WIDTH, SARGEL_WIDTH):
             choice = random.choice(["plates", "sargels"])
             if choice == "plates" and wall_width - x >= PLATE_WIDTH:
                 num = random.randint(1, 2)
@@ -80,8 +80,12 @@ def draw_wall(wall_width, wall_height, mode, manual_sargels=0):
                         ax.add_patch(plt.Rectangle((x, 0), SARGEL_WIDTH, wall_height, edgecolor='black', facecolor=sargel_color))
                         x += SARGEL_WIDTH
                         num_sargels += 1
-            else:
-                break
+
+        # מילוי רווח אחרון אם נשאר משהו
+        remaining = wall_width - x
+        if remaining > 0:
+            color = plate_color if random.choice([True, False]) else sargel_color
+            ax.add_patch(plt.Rectangle((x, 0), remaining, wall_height, edgecolor='black', facecolor=color))
 
     ax.set_xticks([])
     ax.set_yticks([])
