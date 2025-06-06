@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import A4
 from datetime import datetime
 
 # הגדרות מוצרים
-SARGEL_WIDTH = 12  # סע"מ
+SARGEL_WIDTH = 12  # ס"מ
 SARGEL_HEIGHT = 290
 PLATE_WIDTH = 120
 PLATE_HEIGHT = 280
@@ -23,12 +23,12 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels):
     width, height = A4
 
     c.setFont("Helvetica", 14)
-    c.drawString(50, height - 50, f"דו\u05d7 \u05d7\u05d9\u05e4\u05d5\u05d9 \u05e7\u05d9\u05e8")
+    c.drawString(50, height - 50, f"דו"ח חיפוי קיר")
     c.setFont("Helvetica", 12)
-    c.drawString(50, height - 80, f"\u05ea\u05d0\u05e8\u05d9\u05da: {datetime.now().strftime('%d/%m/%Y')}")
-    c.drawString(50, height - 110, f"\u05de\u05d9\u05d3\u05d5\u05ea \u05e7\u05d9\u05e8: {wall_width}x{wall_height} \u05e1\u05e2\u05de")
-    c.drawString(50, height - 140, f"\u05e4\u05dc\u05d8\u05d5\u05ea: {num_plates}")
-    c.drawString(50, height - 170, f"\u05e1\u05e8\u05d2\u05dc\u05d9\u05dd: {num_sargels}")
+    c.drawString(50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
+    c.drawString(50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס"מ")
+    c.drawString(50, height - 140, f"פלטות: {num_plates}")
+    c.drawString(50, height - 170, f"סרגלים: {num_sargels}")
 
     c.showPage()
     c.save()
@@ -94,7 +94,7 @@ def draw_wall(wall_width, wall_height, mode, manual_sargels=0):
     return num_plates, num_sargels
 
 # ממשק ראשי
-st.title("\ud83c\udfcb\ufe0f אפליקציית תכנון חיפוי קיר - Welcome Design")
+st.title("אפליקציית תכנון חיפוי קיר - Welcome Design")
 st.markdown("הזן את המידות ובחר סוג תכנון")
 
 wall_width = st.number_input("רוחב הקיר (ס\"מ):", min_value=100, max_value=10000, value=360)
