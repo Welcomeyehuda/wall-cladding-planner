@@ -23,10 +23,10 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels):
     width, height = A4
 
     c.setFont("Helvetica", 14)
-    c.drawString(50, height - 50, f"דו"ח חיפוי קיר")
+    c.drawString(50, height - 50, "דו\"ח חיפוי קיר")
     c.setFont("Helvetica", 12)
     c.drawString(50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
-    c.drawString(50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס"מ")
+    c.drawString(50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס\"מ")
     c.drawString(50, height - 140, f"פלטות: {num_plates}")
     c.drawString(50, height - 170, f"סרגלים: {num_sargels}")
 
