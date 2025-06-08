@@ -1,5 +1,5 @@
 streamlit
 matplotlib
 reportlab
-bidi
 arabic-reshaper
+python-bidi
