@@ -70,10 +70,9 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0):
 
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_title("הדמיית קיר")
-        ax.text(wall_width / 2, -10, f"רוחב: {wall_width} ס\"מ", ha='center', fontsize=12)
-    ax.text(-10, wall_height / 2, f"גובה: {wall_height} ס\"מ", va='center', fontsize=12, rotation=90)
     ax.set_title("הדמיית קיר", fontsize=14)
+    ax.text(wall_width / 2, -10, f"רוחב: {wall_width} ס\"מ", ha='center', fontsize=12)
+    ax.text(-10, wall_height / 2, f"גובה: {wall_height} ס\"מ", va='center', fontsize=12, rotation=90)
     return fig, len(plates), len(sargels)
 
 # פונקציה ליצירת PDF עם תמונה + חישוב כמויות
