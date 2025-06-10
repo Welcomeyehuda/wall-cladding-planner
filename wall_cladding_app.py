@@ -82,6 +82,6 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     c.setFont("David", 14)
-    c.drawRightString(width - 50, height - 50, rtl("דו"ח חיפוי קיר"))
+    c.drawRightString(width - 50, height - 50, rtl('דו"ח חיפוי קיר'))
     c.setFont("David", 12)
     c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
