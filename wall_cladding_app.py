@@ -40,9 +40,8 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
     plates = []
 
     if mode == 'תכנון אוטומטי':
+        random.seed(datetime.now().timestamp())  # מבטיח תוצאה שונה בכל ריצה
         x = 0
-        sargels.clear()
-        plates.clear()
         while x < wall_width:
             choice = random.choice(['plate', 'sargel', 'mix'])
             if choice == 'plate' and x + PLATE_WIDTH <= wall_width:
@@ -110,11 +109,11 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     c.setFont("David", 14)
-    c.drawRightString(width - 50, height - 50, rtl('דו\"ח חיפוי קיר'))
+    c.drawRightString(width - 50, height - 50, rtl('דו"ח חיפוי קיר'))
     c.setFont("David", 12)
     c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
-    c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates}"))
-    c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels}"))
+    c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates} (סה\"כ {num_plates * PLATE_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
+    c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels} (סה\"כ {num_sargels * SARGEL_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
     c.drawRightString(width - 50, height - 140, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
 
     try:
