@@ -7,14 +7,20 @@ import urllib.parse
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
 import tempfile
+import os
+import arabic_reshaper
+from bidi.algorithm import get_display
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
-# הרשמת גופן תומך עברית
+# רישום גופן עברי
 pdfmetrics.registerFont(TTFont('David', 'DavidLibre-Medium.ttf'))
+
+def rtl(text):
+    return get_display(arabic_reshaper.reshape(text))
 
 # הגדרות מוצרים
 SARGEL_WIDTH = 12
@@ -22,103 +28,110 @@ SARGEL_HEIGHT = 290
 PLATE_WIDTH = 120
 PLATE_HEIGHT = 280
 
-# פונקציה ליצירת PDF עם תמונה
+# פונקציית שרטוט
+
+def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_position='סוף הקיר'):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.set_xlim(0, wall_width)
+    ax.set_ylim(0, wall_height)
+    ax.set_aspect('equal')
+
+    sargels = []
+    plates = []
+
+    if mode == 'תכנון אוטומטי':
+        x = 0
+        while x < wall_width:
+            choice = random.choice(['plate', 'sargel', 'mix'])
+            if choice == 'plate' and x + PLATE_WIDTH <= wall_width:
+                plates.append((x, 0))
+                x += PLATE_WIDTH
+            elif choice == 'sargel' and x + SARGEL_WIDTH <= wall_width:
+                sargels.append((x, 0))
+                x += SARGEL_WIDTH
+            elif choice == 'mix' and x + PLATE_WIDTH + SARGEL_WIDTH <= wall_width:
+                plates.append((x, 0))
+                x += PLATE_WIDTH
+                sargels.append((x, 0))
+                x += SARGEL_WIDTH
+            else:
+                break
+        # מילוי הסוף בצלחות אם נשאר רווח
+        while wall_width - x >= PLATE_WIDTH:
+            plates.append((x, 0))
+            x += PLATE_WIDTH
+        while wall_width - x >= SARGEL_WIDTH:
+            sargels.append((x, 0))
+            x += SARGEL_WIDTH
+    else:  # תכנון ידני
+        x = 0
+        if sargel_position == 'תחילת הקיר':
+            for i in range(num_sargels_manual):
+                if x + SARGEL_WIDTH <= wall_width:
+                    sargels.append((x, 0))
+                    x += SARGEL_WIDTH
+        elif sargel_position == 'אמצע הקיר':
+            x = (wall_width - (num_sargels_manual * SARGEL_WIDTH)) // 2
+            for i in range(num_sargels_manual):
+                sargels.append((x + i * SARGEL_WIDTH, 0))
+        elif sargel_position == 'סוף הקיר':
+            x = wall_width - num_sargels_manual * SARGEL_WIDTH
+            for i in range(num_sargels_manual):
+                sargels.append((x + i * SARGEL_WIDTH, 0))
+
+        # מילוי הפלטות בכל מקום פנוי
+        filled_positions = set()
+        for x, _ in sargels:
+            for i in range(SARGEL_WIDTH):
+                filled_positions.add(x + i)
+
+        x = 0
+        while x + PLATE_WIDTH <= wall_width:
+            if all((x + i) not in filled_positions for i in range(PLATE_WIDTH)):
+                plates.append((x, 0))
+            x += PLATE_WIDTH
+
+    for x, y in plates:
+        ax.add_patch(plt.Rectangle((x, y), PLATE_WIDTH, wall_height, color='lightgray', edgecolor='black'))
+    for x, y in sargels:
+        ax.add_patch(plt.Rectangle((x, y), SARGEL_WIDTH, wall_height, color='dimgray', edgecolor='black'))
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(rtl("הדמיית קיר"), fontsize=14)
+    ax.text(wall_width / 2, -10, rtl(f"רוחב: {wall_width} ס\"מ"), ha='center', fontsize=12)
+    ax.text(-10, wall_height / 2, rtl(f"גובה: {wall_height} ס\"מ"), va='center', fontsize=12, rotation=90)
+    return fig, len(plates), len(sargels)
+
+# פונקציה ליצירת PDF עם תמונה + חישוב כמויות
 
 def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     c.setFont("David", 14)
-    c.drawRightString(width - 50, height - 50, "דו""ח חיפוי קיר")
+    c.drawRightString(width - 50, height - 50, rtl('דו"ח חיפוי קיר'))
     c.setFont("David", 12)
-    c.drawRightString(width - 50, height - 80, f"תאריך: {datetime.now().strftime('%d/%m/%Y')}")
-    c.drawRightString(width - 50, height - 110, f"מידות קיר: {wall_width}x{wall_height} ס""מ")
-    c.drawRightString(width - 50, height - 140, f"פלטות: {num_plates}")
-    c.drawRightString(width - 50, height - 170, f"סרגלים: {num_sargels}")
+    c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
+    c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates}"))
+    c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels}"))
+    c.drawRightString(width - 50, height - 140, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
 
-    # שמירת התרשים לתמונה זמנית והוספה ל-PDF
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
-        fig.savefig(tmpfile.name, bbox_inches='tight')
-        img = ImageReader(tmpfile.name)
-        c.drawImage(img, 50, 250, width=500, preserveAspectRatio=True, mask='auto')
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
+            fig.savefig(tmpfile.name, bbox_inches='tight')
+            c.drawImage(ImageReader(tmpfile.name), 50, height - 520, width=500, preserveAspectRatio=True)
+        os.unlink(tmpfile.name)
+    except Exception as e:
+        c.drawRightString(width - 50, height - 180, rtl(f"שגיאה ביצירת תמונה: {str(e)}"))
 
     c.showPage()
     c.save()
     buffer.seek(0)
     return buffer
 
-# פונקציית שרטוט
-
-def draw_wall(wall_width, wall_height, mode, manual_sargels=0, sargel_position="סוף"):
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.set_xlim(0, wall_width)
-    ax.set_ylim(0, wall_height)
-    ax.set_aspect('equal')
-    plate_color = "#D9E4DD"
-    sargel_color = "#BFA6A0"
-    x = 0
-    num_plates, num_sargels = 0, 0
-
-    if mode == "תכנון ידני":
-        while x < wall_width:
-            if wall_width - x >= PLATE_WIDTH:
-                ax.add_patch(plt.Rectangle((x, 0), PLATE_WIDTH, wall_height, edgecolor='black', facecolor=plate_color))
-                x += PLATE_WIDTH
-                num_plates += 1
-            else:
-                ax.add_patch(plt.Rectangle((x, 0), wall_width - x, wall_height, edgecolor='black', facecolor=plate_color))
-                num_plates += 1
-                break
-        if sargel_position == "תחילת הקיר":
-            x = 0
-        elif sargel_position == "אמצע הקיר":
-            x = wall_width / 2 - (manual_sargels * SARGEL_WIDTH) / 2
-        elif sargel_position == "סוף הקיר":
-            x = wall_width - (manual_sargels * SARGEL_WIDTH)
-
-        for _ in range(manual_sargels):
-            if x + SARGEL_WIDTH <= wall_width:
-                ax.add_patch(plt.Rectangle((x, 0), SARGEL_WIDTH, wall_height, edgecolor='black', facecolor=sargel_color))
-                x += SARGEL_WIDTH
-                num_sargels += 1
-
-    else:
-        while wall_width - x >= min(PLATE_WIDTH, SARGEL_WIDTH):
-            choice = random.choice(["plates", "sargels"])
-            if choice == "plates" and wall_width - x >= PLATE_WIDTH:
-                for _ in range(random.randint(1, 2)):
-                    if wall_width - x >= PLATE_WIDTH:
-                        ax.add_patch(plt.Rectangle((x, 0), PLATE_WIDTH, wall_height, edgecolor='black', facecolor=plate_color))
-                        x += PLATE_WIDTH
-                        num_plates += 1
-            elif choice == "sargels" and wall_width - x >= SARGEL_WIDTH:
-                for _ in range(random.randint(1, 5)):
-                    if wall_width - x >= SARGEL_WIDTH:
-                        ax.add_patch(plt.Rectangle((x, 0), SARGEL_WIDTH, wall_height, edgecolor='black', facecolor=sargel_color))
-                        x += SARGEL_WIDTH
-                        num_sargels += 1
-
-        remaining = wall_width - x
-        if remaining > 0:
-            color = plate_color if random.choice([True, False]) else sargel_color
-            ax.add_patch(plt.Rectangle((x, 0), remaining, wall_height, edgecolor='black', facecolor=color))
-
-    # תוספת טקסט מידות
-    ax.text(wall_width / 2, -10, f"רוחב: {wall_width} ס""מ", ha='center', fontsize=12)
-    ax.text(-10, wall_height / 2, f"גובה: {wall_height} ס""מ", va='center', rotation=90, fontsize=12)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_title("הדמיית קיר")
-    st.pyplot(fig)
-    return num_plates, num_sargels, fig
-
-# ממשק ראשי
-st.markdown("""
-<div dir="rtl">
-<h3>אפליקציית תכנון חיפוי קיר - Welcome Design</h3>
-<p>הזן את המידות ובחר את סוג וסידור הסרגלים</p>
-</div>
-""", unsafe_allow_html=True)
+# --- ממשק Streamlit ---
+st.title("🧱 מתכנן חיפוי קיר - Welcome Design")
 
 wall_width = st.number_input("רוחב הקיר (ס\"מ):", min_value=100, max_value=10000, value=360)
 wall_height = st.number_input("גובה הקיר (ס\"מ):", min_value=100, max_value=400, value=280)
@@ -131,12 +144,13 @@ if layout_type == "תכנון ידני":
     sargel_position = st.selectbox("מיקום הסרגלים בקיר:", ["תחילת הקיר", "אמצע הקיר", "סוף הקיר"])
 
 if st.button("📐 צור הדמיה"):
-    num_plates, num_sargels, fig = draw_wall(wall_width, wall_height, layout_type, manual_sargels, sargel_position)
+    fig, num_plates, num_sargels = draw_wall(wall_width, wall_height, layout_type, manual_sargels, sargel_position)
+    st.pyplot(fig)
+    st.success(f"💡 תוצאה: {num_plates} פלטות ו־{num_sargels} סרגלים")
 
     pdf_buffer = create_pdf(wall_width, wall_height, num_plates, num_sargels, fig)
-    st.download_button(label="📄 הורד PDF", data=pdf_buffer, file_name="wall_cladding_plan.pdf")
+    st.download_button("📄 הורד PDF", data=pdf_buffer, file_name="wall_cladding_plan.pdf")
 
-    # שיתוף בוואטסאפ
     text = f"תכנון חיפוי קיר\nרוחב: {wall_width} ס\"מ | גובה: {wall_height} ס\"מ\nפלטות: {num_plates} | סרגלים: {num_sargels}"
     encoded = urllib.parse.quote(text)
     whatsapp_url = f"https://wa.me/?text={encoded}"
