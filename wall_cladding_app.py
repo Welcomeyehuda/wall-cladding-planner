@@ -40,6 +40,7 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
     plates = []
 
     if mode == 'תכנון אוטומטי':
+        random.seed(datetime.now().timestamp())  # מוסיף גיוון אמיתי
         x = 0
         while x < wall_width:
             choice = random.choice(['plate', 'sargel', 'mix'])
@@ -121,6 +122,19 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
         c.drawRightString(width - 50, height - 200, rtl(f"שגיאה ביצירת תמונה: {str(e)}"))
 
     c.showPage()
+
+    # עמוד חיתוכים
+    c.setFont("David", 14)
+    c.drawRightString(width - 50, height - 50, rtl("טבלת חיתוכים לפלטות וסרגלים"))
+    c.setFont("David", 12)
+    y = height - 100
+    for i in range(num_plates):
+        c.drawRightString(width - 50, y, rtl(f"פלטה #{i+1}: {PLATE_WIDTH} ס"מ"))
+        y -= 20
+    for i in range(num_sargels):
+        c.drawRightString(width - 50, y, rtl(f"סרגל #{i+1}: {SARGEL_WIDTH} ס"מ"))
+        y -= 20
+
     c.save()
     buffer.seek(0)
     return buffer
