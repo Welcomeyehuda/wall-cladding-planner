@@ -40,12 +40,9 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
     plates = []
 
     if mode == 'תכנון אוטומטי':
-        random.seed(datetime.now().timestamp())  # מבטיח תוצאה שונה בכל ריצה
         x = 0
-        options = ['plate', 'sargel', 'mix'] * 10
-        random.shuffle(options)
         while x < wall_width:
-            choice = options.pop() if options else 'plate'
+            choice = random.choice(['plate', 'sargel', 'mix'])
             if choice == 'plate' and x + PLATE_WIDTH <= wall_width:
                 plates.append((x, 0))
                 x += PLATE_WIDTH
@@ -59,12 +56,6 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
                 x += SARGEL_WIDTH
             else:
                 break
-        while wall_width - x >= PLATE_WIDTH:
-            plates.append((x, 0))
-            x += PLATE_WIDTH
-        while wall_width - x >= SARGEL_WIDTH:
-            sargels.append((x, 0))
-            x += SARGEL_WIDTH
     else:
         x = 0
         if sargel_position == 'תחילת הקיר':
@@ -116,16 +107,18 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
     c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates} (סה\"כ {num_plates * PLATE_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
     c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels} (סה\"כ {num_sargels * SARGEL_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
-    c.drawRightString(width - 50, height - 140, rtl("סה\"כ חומרים נדרשים: {} פלטות ו־{} סרגלים".format(num_plates, num_sargels)))
-    c.drawRightString(width - 50, height - 160, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
+    c.setFont("David", 14)
+    c.drawRightString(width - 50, height - 160, rtl(f"סה\"כ חומרים נדרשים: {num_plates} פלטות ו־{num_sargels} סרגלים"))
+    c.setFont("David", 12)
+    c.drawRightString(width - 50, height - 180, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
             fig.savefig(tmpfile.name, bbox_inches='tight')
-            c.drawImage(ImageReader(tmpfile.name), 50, height - 520, width=500, preserveAspectRatio=True)
+            c.drawImage(ImageReader(tmpfile.name), 50, height - 540, width=500, preserveAspectRatio=True)
         os.unlink(tmpfile.name)
     except Exception as e:
-        c.drawRightString(width - 50, height - 180, rtl(f"שגיאה ביצירת תמונה: {str(e)}"))
+        c.drawRightString(width - 50, height - 200, rtl(f"שגיאה ביצירת תמונה: {str(e)}"))
 
     c.showPage()
     c.save()
