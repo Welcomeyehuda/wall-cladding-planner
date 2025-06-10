@@ -42,8 +42,10 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
     if mode == 'תכנון אוטומטי':
         random.seed(datetime.now().timestamp())  # מבטיח תוצאה שונה בכל ריצה
         x = 0
+        options = ['plate', 'sargel', 'mix'] * 10
+        random.shuffle(options)
         while x < wall_width:
-            choice = random.choice(['plate', 'sargel', 'mix'])
+            choice = options.pop() if options else 'plate'
             if choice == 'plate' and x + PLATE_WIDTH <= wall_width:
                 plates.append((x, 0))
                 x += PLATE_WIDTH
@@ -91,9 +93,9 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
             x += PLATE_WIDTH
 
     for x, y in plates:
-        ax.add_patch(plt.Rectangle((x, y), PLATE_WIDTH, wall_height, color='lightgray', edgecolor='black'))
+        ax.add_patch(plt.Rectangle((x, y), PLATE_WIDTH, wall_height, color='#A8D5BA', edgecolor='black'))  # ירקרק
     for x, y in sargels:
-        ax.add_patch(plt.Rectangle((x, y), SARGEL_WIDTH, wall_height, color='dimgray', edgecolor='black'))
+        ax.add_patch(plt.Rectangle((x, y), SARGEL_WIDTH, wall_height, color='#8B5A2B', edgecolor='black'))  # חום
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -114,7 +116,8 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
     c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates} (סה\"כ {num_plates * PLATE_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
     c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels} (סה\"כ {num_sargels * SARGEL_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
-    c.drawRightString(width - 50, height - 140, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
+    c.drawRightString(width - 50, height - 140, rtl("סה\"כ חומרים נדרשים: {} פלטות ו־{} סרגלים".format(num_plates, num_sargels)))
+    c.drawRightString(width - 50, height - 160, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
