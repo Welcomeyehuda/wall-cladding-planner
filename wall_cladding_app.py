@@ -56,7 +56,7 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
                 sargels.append((x, 0))
                 x += SARGEL_WIDTH
             else:
-                break
+                x += 1
     else:
         x = 0
         if sargel_position == 'תחילת הקיר':
@@ -92,8 +92,8 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(rtl("הדמיית קיר"), fontsize=14)
-    ax.text(wall_width / 2, -10, rtl(f"רוחב: {wall_width} ס"מ"), ha='center', fontsize=12)
-    ax.text(-10, wall_height / 2, rtl(f"גובה: {wall_height} ס"מ"), va='center', fontsize=12, rotation=90)
+    ax.text(wall_width / 2, -10, rtl(f"רוחב: {wall_width} ס\"מ"), ha='center', fontsize=12)
+    ax.text(-10, wall_height / 2, rtl(f"גובה: {wall_height} ס\"מ"), va='center', fontsize=12, rotation=90)
     return fig, len(plates), len(sargels)
 
 # פונקציה ליצירת PDF עם תמונה + חישוב כמויות
@@ -105,11 +105,11 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c.setFont("David", 14)
     c.drawRightString(width - 50, height - 50, rtl('דו"ח חיפוי קיר'))
     c.setFont("David", 12)
-    c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס"מ"))
-    c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates} (סה"כ {num_plates * PLATE_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
-    c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels} (סה"כ {num_sargels * SARGEL_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
+    c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
+    c.drawRightString(width - 50, height - 100, rtl(f"כמות פלטות: {num_plates} (סה\"כ {num_plates * PLATE_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
+    c.drawRightString(width - 50, height - 120, rtl(f"כמות סרגלים: {num_sargels} (סה\"כ {num_sargels * SARGEL_WIDTH / 100:.2f} מטר רוחב כיסוי)"))
     c.setFont("David", 14)
-    c.drawRightString(width - 50, height - 160, rtl(f"סה"כ חומרים נדרשים: {num_plates} פלטות ו־{num_sargels} סרגלים"))
+    c.drawRightString(width - 50, height - 160, rtl(f"סה\"כ חומרים נדרשים: {num_plates} פלטות ו־{num_sargels} סרגלים"))
     c.setFont("David", 12)
     c.drawRightString(width - 50, height - 180, rtl("הסבר התקנה: יש להתחיל בהצמדת הפלטות מהקצה הימני של הקיר ולסיים בהצמדת הסרגלים בהתאם למיקום שנבחר. יש לוודא יישור מלא לפני קיבוע סופי."))
 
@@ -129,10 +129,10 @@ def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     c.setFont("David", 12)
     y = height - 100
     for i in range(num_plates):
-        c.drawRightString(width - 50, y, rtl(f'פלטה #{i+1}: {PLATE_WIDTH} ס"מ'))
+        c.drawRightString(width - 50, y, rtl(f"פלטה #{i+1}: {PLATE_WIDTH} ס\"מ"))
         y -= 20
     for i in range(num_sargels):
-        c.drawRightString(width - 50, y, rtl(f'סרגל #{i+1}: {SARGEL_WIDTH} ס"מ'))
+        c.drawRightString(width - 50, y, rtl(f"סרגל #{i+1}: {SARGEL_WIDTH} ס\"מ"))
         y -= 20
 
     c.save()
