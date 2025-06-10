@@ -28,6 +28,7 @@ PLATE_WIDTH = 120
 PLATE_HEIGHT = 280
 
 # פונקציית שרטוט
+
 def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0):
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.set_xlim(0, wall_width)
@@ -70,57 +71,18 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title("הדמיית קיר")
+        ax.text(wall_width / 2, -10, f"רוחב: {wall_width} ס\"מ", ha='center', fontsize=12)
+    ax.text(-10, wall_height / 2, f"גובה: {wall_height} ס\"מ", va='center', fontsize=12, rotation=90)
+    ax.set_title("הדמיית קיר", fontsize=14)
     return fig, len(plates), len(sargels)
 
 # פונקציה ליצירת PDF עם תמונה + חישוב כמויות
+
 def create_pdf(wall_width, wall_height, num_plates, num_sargels, fig):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     c.setFont("David", 14)
-    c.drawRightString(width - 50, height - 50, rtl('דו"ח חיפוי קיר'))
+    c.drawRightString(width - 50, height - 50, rtl("דו"ח חיפוי קיר"))
     c.setFont("David", 12)
     c.drawRightString(width - 50, height - 80, rtl(f"מידות קיר: {wall_width}x{wall_height} ס\"מ"))
-    c.drawRightString(width - 50, height - 110, rtl(f"פלטות נדרשות: {num_plates} יחידות"))
-    c.drawRightString(width - 50, height - 140, rtl(f"סרגלים נדרשים: {num_sargels} יחידות"))
-
-    c.drawRightString(width - 50, height - 180, rtl("הנחיות התקנה:"))
-    c.setFont("David", 10)
-    c.drawRightString(width - 50, height - 200, rtl("1. יש לוודא שהקיר ישר ונקי לפני תחילת ההתקנה."))
-    c.drawRightString(width - 50, height - 220, rtl("2. מומלץ להתחיל מהמרכז או לפי סימון מראש."))
-    c.drawRightString(width - 50, height - 240, rtl("3. להשתמש בדבק מתאים לפי סוג המשטח."))
-    c.drawRightString(width - 50, height - 260, rtl("4. את הסרגלים יש למקם בהתאם לתכנון."))
-    c.drawRightString(width - 50, height - 280, rtl("5. לבצע חיתוכים לפי צורך, תוך שמירה על מראה רציף."))
-
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
-        fig.savefig(tmpfile.name, bbox_inches='tight')
-        img = ImageReader(tmpfile.name)
-        c.drawImage(img, 50, 20, width=500, preserveAspectRatio=True, mask='auto')
-
-    c.showPage()
-    c.save()
-    buffer.seek(0)
-    return buffer
-
-# ממשק Streamlit
-st.set_page_config(page_title="מתכנן חיפוי קיר", layout="centered")
-st.title("🧱 מתכנן חיפוי קיר - Welcome Design")
-
-wall_width = st.number_input("רוחב הקיר (ס\"מ):", min_value=50, max_value=1000, value=360)
-wall_height = st.number_input("גובה הקיר (ס\"מ):", min_value=50, max_value=300, value=280)
-
-mode = st.radio("בחר שיטת תכנון:", ["תכנון אוטומטי", "תכנון ידני"])
-num_sargels_manual = 0
-if mode == "תכנון ידני":
-    num_sargels_manual = st.number_input("כמה סרגלים למקם (מיד אחרי כל פלטה)?", min_value=1, max_value=20, value=3)
-
-if st.button("📐 צור הדמיה"):
-    fig, num_plates, num_sargels = draw_wall(wall_width, wall_height, mode, num_sargels_manual)
-    st.pyplot(fig)
-
-    pdf = create_pdf(wall_width, wall_height, num_plates, num_sargels, fig)
-    st.download_button("📄 הורד דו\"ח PDF", data=pdf, file_name="wall_cladding_plan.pdf")
-
-    text = f"תכננתי קיר ברוחב {wall_width} ס\"מ וגובה {wall_height} ס\"מ עם {num_plates} פלטות ו-{num_sargels} סרגלים."
-    url = "https://api.whatsapp.com/send?text=" + urllib.parse.quote(text)
-    st.markdown(f"[📤 שתף בוואטסאפ]({url})")
