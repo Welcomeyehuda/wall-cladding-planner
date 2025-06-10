@@ -38,9 +38,9 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
 
     sargels = []
     plates = []
-    x = 0
 
     if mode == 'תכנון אוטומטי':
+        x = 0
         while x < wall_width:
             choice = random.choice(['plate', 'sargel', 'mix'])
             if choice == 'plate' and x + PLATE_WIDTH <= wall_width:
@@ -56,8 +56,8 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
                 x += SARGEL_WIDTH
             else:
                 break
-
     else:  # תכנון ידני
+        x = 0
         if sargel_position == 'תחילת הקיר':
             for i in range(num_sargels_manual):
                 if x + SARGEL_WIDTH <= wall_width:
@@ -67,17 +67,22 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
             x = (wall_width - (num_sargels_manual * SARGEL_WIDTH)) // 2
             for i in range(num_sargels_manual):
                 sargels.append((x + i * SARGEL_WIDTH, 0))
-            x = 0
-        # לאחר סרגלים, נתחיל להכניס פלטות מההתחלה או מאיפה שנגמר הסרגלים
-        current_x = 0
-        while current_x + PLATE_WIDTH <= wall_width:
-            plates.append((current_x, 0))
-            current_x += PLATE_WIDTH
-        if sargel_position == 'סוף הקיר':
-            current_x = wall_width - num_sargels_manual * SARGEL_WIDTH
+        elif sargel_position == 'סוף הקיר':
+            x = wall_width - num_sargels_manual * SARGEL_WIDTH
             for i in range(num_sargels_manual):
-                if current_x + SARGEL_WIDTH <= wall_width:
-                    sargels.append((current_x + i * SARGEL_WIDTH, 0))
+                sargels.append((x + i * SARGEL_WIDTH, 0))
+
+        # מילוי הפלטות בכל מקום פנוי
+        filled_positions = set()
+        for x, _ in sargels:
+            for i in range(SARGEL_WIDTH):
+                filled_positions.add(x + i)
+
+        x = 0
+        while x + PLATE_WIDTH <= wall_width:
+            if all((x + i) not in filled_positions for i in range(PLATE_WIDTH)):
+                plates.append((x, 0))
+            x += PLATE_WIDTH
 
     for x, y in plates:
         ax.add_patch(plt.Rectangle((x, y), PLATE_WIDTH, wall_height, color='lightgray', edgecolor='black'))
