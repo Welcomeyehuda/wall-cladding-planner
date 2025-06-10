@@ -56,6 +56,13 @@ def draw_wall(wall_width, wall_height, mode, num_sargels_manual=0, sargel_positi
                 x += SARGEL_WIDTH
             else:
                 break
+        # מילוי הסוף בצלחות אם נשאר רווח
+        while wall_width - x >= PLATE_WIDTH:
+            plates.append((x, 0))
+            x += PLATE_WIDTH
+        while wall_width - x >= SARGEL_WIDTH:
+            sargels.append((x, 0))
+            x += SARGEL_WIDTH
     else:  # תכנון ידני
         x = 0
         if sargel_position == 'תחילת הקיר':
